@@ -31,6 +31,7 @@ DEBUG = os.getenv("DEBUG")
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
 
