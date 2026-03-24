@@ -14,7 +14,6 @@ def firebase_initialization():
             if firebase_cred_env:                           
                 firebase_creds = json.loads(firebase_cred_env)
                 cred = credentials.Certificate(firebase_creds)
-                logger.info("Firebase initialized successfully!")
             else:                                                          # if creds not in .env then fallback to firebase-adminsdk.json 
                 cred_path = os.path.join(settings.BASE_DIR.parent , "firebase-adminsdk.json")
                 if not os.path.exists(cred_path):
