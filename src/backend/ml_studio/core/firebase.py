@@ -12,7 +12,7 @@ def firebase_initialization():
             firebase_creds = json.loads(firebase_cred_env)
             cred = credentials.Certificate(firebase_creds)
             firebase_admin.initialize_app(cred)
-            print("done")
+            print("Firebase initialized successfully!")
         except:
             print("Invlaid firebase credentials")
     
