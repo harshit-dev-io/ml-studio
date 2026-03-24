@@ -131,3 +131,24 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5501",
     "http://127.0.0.1:5501",
 ]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',  # This ensures INFO logs show up
+    },
+}
