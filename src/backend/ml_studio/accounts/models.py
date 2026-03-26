@@ -9,7 +9,7 @@ class User(AbstractUser):
     email_verified = models.BooleanField(default=False)
     uid = models.CharField(max_length=255 , unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    display_name = models.CharField(max_length=255 , default="User")
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
-
+    REQUIRED_FIELDS = ['uid' , 'username']

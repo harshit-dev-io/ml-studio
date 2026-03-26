@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def Get_or_Create_User(* , id_token):
+def Get_or_Create_User(* , id_token , serializer_data):
     try:
         decoded = auth.verify_id_token(id_token)
         uid = decoded["uid"]
@@ -16,6 +16,7 @@ def Get_or_Create_User(* , id_token):
                 uid = uid,
                 defaults= {
                     "email" : decoded.get("email" , ""),
+                    **serializer_data
                 }
                 )
         
