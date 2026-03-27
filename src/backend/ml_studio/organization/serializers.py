@@ -6,3 +6,7 @@ class Organization_List_Serializer(serializers.ModelSerializer):
         model = Organization
         fields = ['name' , 'slug' , 'type']
 
+class Organization_Create_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ['name']
