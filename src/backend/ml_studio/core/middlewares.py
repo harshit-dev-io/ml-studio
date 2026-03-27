@@ -32,3 +32,34 @@ class Firebase_Authentication_Middleware(MiddlewareMixin):
         return None
 
 
+class Organization_Middleware(MiddlewareMixin):
+    def process_view(self , request , view_func , view_args , view_kwargs):
+        org_slug = request.headers.get("X-ORG-SLUG")
+
+        if not org_slug or org_slug in ['undefined','null']:
+            request.organization = None
+            request.membership = None
+            return None
+        
+        try: 
+            request.organization = Organization.objects.get(slug = org_slug)
+        except Organization.DoesNotExist:
+            return HttpResponseForbidden('organization does not exist')
+        except Exception as e:
+            logger.error(f"Error occurred while fetching organization {org_slug}: {e}")
+            request.organization = None
+            request.membership = None
+            return None
+        
+        if hasattr(request , "user"):
+            try:
+                request.membership = Membership.objects.get(organization = request.organization , user = request.user)
+            except Membership.DoesNotExist :
+                return HttpResponseForbidden('No access to this organization')
+            except Exception as e :
+                logger.error(f"Error occurred while fetching organization {org_slug}: {e}")
+                request.membership = None
+            
+        else:
+            request.membership = None
+        return None
