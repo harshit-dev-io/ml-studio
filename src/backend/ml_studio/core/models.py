@@ -9,3 +9,6 @@ class Tenant_Base_Model(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
