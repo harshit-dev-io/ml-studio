@@ -24,7 +24,7 @@ class Create_Org_API(Tenant_Base_API):
     def post(self , request):
         serializer = Organization_Create_Serializer(data = request.data)
         if serializer.is_valid():
-            organization = Create_Org(serializer.validated_data['name'] , user = request.user)
+            organization = Create_Org(serializer.validated_data['name'] , user = request.user , type="team")
             serializer = Organization_List_Serializer(organization) 
             return Response({f"message : {serializer.data}" } , status = status.HTTP_200_OK)
         else:
