@@ -8,6 +8,7 @@ from accounts.models import User
 class Workspace(Tenant_Base_Model):
     name = models.CharField(max_length=255)
     slug = AutoSlugField(populate_from = "name" , unique = True)
+    user = models.ForeignKey(User , on_delete=models.SET_NULL , null=True , blank=True)
 
     class Meta:
         unique_together = ['name' , "organization"]
