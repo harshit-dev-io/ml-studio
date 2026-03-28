@@ -6,3 +6,8 @@ class Workspace_Serializer(serializers.ModelSerializer):
         model = Workspace
         fields = ['name' , "slug"]
  
+class Workspace_Create_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workspace
+        fields = ['name']
+ 
