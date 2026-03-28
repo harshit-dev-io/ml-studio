@@ -11,7 +11,8 @@ def Create_Org(* , name , user , type):
 
     organization = Organization.objects.create(
         name = name,
-        type = type
+        type = type,
+        owner = user
     )
 
     membership = Membership.objects.create(
