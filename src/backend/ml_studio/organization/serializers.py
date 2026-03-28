@@ -10,3 +10,8 @@ class Organization_Create_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ['name']
+
+class Membership_Add_Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Membership
+        fields = ['user','role']
