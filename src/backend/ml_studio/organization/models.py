@@ -16,6 +16,7 @@ class Organization(models.Model):
     is_active = models.BooleanField(default=True)
     is_archived = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
+    owner = models.ForeignKey(User , on_delete=models.CASCADE )
     
     def __str__(self):
         return f"{self.name}{self.type}"
