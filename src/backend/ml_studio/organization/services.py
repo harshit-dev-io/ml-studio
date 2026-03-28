@@ -7,11 +7,11 @@ class UserRole(Enum):
     MEMBER = 'member'
     VIEWER = 'viewer'
 
-def Create_Org(* , name , user):
+def Create_Org(* , name , user , type):
 
     organization = Organization.objects.create(
         name = name,
-        type = "team"
+        type = type
     )
 
     membership = Membership.objects.create(
