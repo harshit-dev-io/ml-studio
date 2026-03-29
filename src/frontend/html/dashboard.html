@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ML Studio</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ML Studio</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="active"><a href="#" id="navOrgs">Organizations</a></li>
+                </ul>
+            <div class="sidebar-footer">
+                <p id="userEmailDisplay" class="user-email">Loading...</p>
+                <button id="logoutBtn" class="btn btn-secondary btn-small">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            
+            <section id="view-org-list" class="view-section active">
+                <header class="content-header">
+                    <h1>My Organizations</h1>
+                    <button id="openCreateOrgModal" class="btn btn-primary">Create Organization</button>
+                </header>
+                <div class="grid" id="orgGrid">
+                    </div>
+            </section>
+
+            <section id="view-org-details" class="view-section hidden">
+                <header class="content-header">
+                    <div>
+                        <button id="backToOrgs" class="btn btn-secondary btn-small">&larr; Back</button>
+                        <h1 id="currentOrgName">Organization Name</h1>
+                    </div>
+                    <button id="openAddMemberModal" class="btn btn-primary">Add Member</button>
+                </header>
+                
+                <div class="card table-container">
+                    <h2>Members</h2>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="createOrgModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" data-target="createOrgModal">&times;</span>
+            <h2>Create Organization</h2>
+            <form id="createOrgForm">
+                <div class="input-group">
+                    <label for="orgName">Organization Name</label>
+                    <input type="text" id="orgName" required placeholder="e.g., Acme Corp AI">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Create</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addMemberModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" data-target="addMemberModal">&times;</span>
+            <h2>Add Member</h2>
+            <form id="addMemberForm">
+                <div class="input-group">
+                    <label for="memberEmail">User Email</label>
+                    <input type="email" id="memberEmail" required placeholder="colleague@example.com">
+                </div>
+                <div class="input-group">
+                    <label for="memberRole">Role</label>
+                    <select id="memberRole">
+                        <option value="member">Member</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Invite Member</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>
