@@ -21,14 +21,14 @@ class Signup_API(APIView):
         id_token = auth_token.split(" ")[1]
 
         try:        
-            decoded = auth.verify_id_token(id_token)
+            decoded = auth.verify_id_token(id_token , clock_skew_seconds= 5)
         except Exception as e:
             logger.error(f"Firebase verification failed: {e}")
             return Response({"error": "Invalid Firebase token"}, status=status.HTTP_401_UNAUTHORIZED)
 
         user_exists = Check_User(uid=decoded['uid'])
 
-        # print(user_exists)
+        print(user_exists)
 
         if user_exists:
             return Response({"message": "Account already exists"}, status=status.HTTP_200_OK)

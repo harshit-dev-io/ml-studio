@@ -16,7 +16,7 @@ class Firebase_Authentication_Middleware(BaseAuthentication):
         id_token = auth_token.split(" ")[1]
 
         try:        
-            decoded = auth.verify_id_token(id_token)
+            decoded = auth.verify_id_token(id_token , clock_skew_seconds=5)
         except Exception as e:
             logger.error(f"Firebase verification failed: {e}")
             return HttpResponseForbidden("Invalid Firebase token")
