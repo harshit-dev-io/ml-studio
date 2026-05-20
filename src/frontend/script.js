@@ -11,14 +11,14 @@ import {
 
 // TODO: Replace this with your app's Firebase project configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDxztSMWO-6YByM72j7ecK9T2UC4xhlolE",
-    authDomain: "ml-studio-fb883.firebaseapp.com",
-    projectId: "ml-studio-fb883",
-    storageBucket: "ml-studio-fb883.firebasestorage.app",
-    messagingSenderId: "506347802771",
-    appId: "1:506347802771:web:3c1b0785e2d6e71ee9bd66",
-    measurementId: "G-KTHZB61TKM"
-  };
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+};
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
