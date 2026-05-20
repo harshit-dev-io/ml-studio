@@ -58,8 +58,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middlewares.Firebase_Authentication_Middleware',
-    'core.middlewares.Organization_Middleware',
+    # 'core.middlewares.Firebase_Authentication_Middleware',
+    # 'core.middlewares.Organization_Middleware',
 ]
 
 ROOT_URLCONF = 'ml_studio.urls'
@@ -134,6 +134,8 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5501",
     "http://127.0.0.1:5501",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
 ]
 
 LOGGING = {
