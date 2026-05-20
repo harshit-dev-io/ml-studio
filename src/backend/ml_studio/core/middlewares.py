@@ -41,6 +41,8 @@ class Organization_Middleware(MiddlewareMixin):
             request.membership = None
             return None
         
+        request.org_slug = org_slug
+        
         try: 
             request.organization = Organization.objects.get(slug = org_slug)
         except Organization.DoesNotExist:
@@ -53,15 +55,6 @@ class Organization_Middleware(MiddlewareMixin):
             request.membership = None
             return None
         
-        if hasattr(request , "user"):
-            try:
-                request.membership = Membership.objects.get(organization = request.organization , user = request.user)
-            except Membership.DoesNotExist :
-                return HttpResponseForbidden('No access to this organization')
-            except Exception as e :
-                logger.error(f"Error occurred while fetching organization {org_slug}: {e}")
-                request.membership = None
-            
         else:
             request.membership = None
         return None
