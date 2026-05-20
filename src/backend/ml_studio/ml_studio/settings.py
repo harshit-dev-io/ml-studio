@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
     "core",
     "accounts",
     "organization",
@@ -157,4 +158,10 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'INFO',  # This ensures INFO logs show up
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES' : [
+        "core.authentication.Firebase_Authentication_Middleware"
+    ]
 }
