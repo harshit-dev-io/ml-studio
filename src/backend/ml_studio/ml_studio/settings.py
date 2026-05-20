@@ -43,8 +43,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
     "core",
     "accounts",
+    "organization",
+    "workspace",
 ]
 
 MIDDLEWARE = [
@@ -56,6 +59,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'core.middlewares.Firebase_Authentication_Middleware',
+    'core.middlewares.Organization_Middleware',
 ]
 
 ROOT_URLCONF = 'ml_studio.urls'
@@ -130,6 +135,8 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5501",
     "http://127.0.0.1:5501",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
 ]
 
 LOGGING = {
@@ -151,4 +158,10 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'INFO',  # This ensures INFO logs show up
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES' : [
+        "core.authentication.Firebase_Authentication_Middleware"
+    ]
 }

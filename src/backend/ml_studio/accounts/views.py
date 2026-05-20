@@ -21,14 +21,13 @@ class Signup_API(APIView):
         id_token = auth_token.split(" ")[1]
 
         try:        
-            decoded = auth.verify_id_token(id_token)
+            decoded = auth.verify_id_token(id_token , clock_skew_seconds= 5)
         except Exception as e:
             logger.error(f"Firebase verification failed: {e}")
             return Response({"error": "Invalid Firebase token"}, status=status.HTTP_401_UNAUTHORIZED)
 
         user_exists = Check_User(uid=decoded['uid'])
 
-        # print(user_exists)
 
         if user_exists:
             return Response({"message": "Account already exists"}, status=status.HTTP_200_OK)
@@ -45,3 +44,27 @@ class Signup_API(APIView):
                 
             else:
                 return Response({"error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST )
+            
+class Login_API(APIView):
+    def post(self , request):
+        auth_token = request.headers.get("Authorization") 
+        serializer = Signup_Serializer(data = request.data)
+
+        if not auth_token or not auth_token.startswith("Bearer "):
+                return Response({"error": "Invalid or missing token. Use format 'Bearer <token>'."} , status=status.HTTP_401_UNAUTHORIZED)
+            
+        id_token = auth_token.split(" ")[1]
+
+        try:        
+            decoded = auth.verify_id_token(id_token , clock_skew_seconds= 5)
+        except Exception as e:
+            logger.error(f"Firebase verification failed: {e}")
+            return Response({"error": "Invalid Firebase token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        user_exists = Check_User(uid=decoded['uid'])
+
+        if user_exists:
+             # login login should be added here 
+             return Response({"message": "user exists "}, status=status.HTTP_200_OK)
+        else:
+             return Response({"message": "user does not exist please login "}, status=status.HTTP_401_UNAUTHORIZED)
