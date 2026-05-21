@@ -115,7 +115,7 @@ authForm.addEventListener('submit', async (e) => {
         } else {
             userCredential = await signInWithEmailAndPassword(auth, email, password);
             
-            apiUrl = 'http://127.0.0.1:8000/auth/signup/'; // Your Login Endpoint
+            apiUrl = 'http://127.0.0.1:8000/auth/login/'; // Your Login Endpoint
             payload = {
                 email: userCredential.user.email,
                 uid: userCredential.user.uid
