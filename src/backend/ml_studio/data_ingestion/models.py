@@ -1,8 +1,10 @@
 from django.db import models
 from organization.models import Organization
+import uuid
 
 # Create your models here.
 class DataSet(models.Model):
+    id = models.UUIDField(default=uuid.uuid4 , unique=True , editable= False , primary_key= True)
     organization_id = models.ForeignKey(Organization, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
@@ -26,4 +28,4 @@ class DataSet(models.Model):
     status = models.CharField(max_length=256 , choices=STATUS_CHOICES)
 
     column_schema = models.JSONField(default=dict) # (for ui purpose) initally a empty dict 
-    created_at = models.DateTimeField(auto_now_add==True)
+    created_at = models.DateTimeField(auto_now_add = True)
