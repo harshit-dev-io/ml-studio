@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "accounts",
     "organization",
     "workspace",
+    "data_ingestion"
 ]
 
 MIDDLEWARE = [
