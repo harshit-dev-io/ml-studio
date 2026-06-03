@@ -1,6 +1,10 @@
 anyio==4.12.1
 appdirs==1.4.4
+argon2-cffi==25.1.0
+argon2-cffi-bindings==25.1.0
 asgiref==3.11.1
+boto3==1.43.20
+botocore==1.43.20
 CacheControl==0.14.4
 certifi==2026.2.25
 cffi==2.0.0
@@ -33,6 +37,8 @@ httpx==0.28.1
 hyperframe==6.1.0
 idna==3.11
 inflection==0.5.1
+jmespath==1.1.0
+minio==7.2.20
 msgpack==1.1.2
 proto-plus==1.27.1
 protobuf==6.33.6
@@ -40,9 +46,12 @@ psycopg2-binary==2.9.11
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==3.0
+pycryptodome==3.23.0
 PyJWT==2.12.1
+python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 requests==2.32.5
+s3transfer==0.18.0
 setuptools==79.0.1
 six==1.17.0
 sqlparse==0.5.5
