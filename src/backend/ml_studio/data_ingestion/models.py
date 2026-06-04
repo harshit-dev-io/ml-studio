@@ -5,7 +5,7 @@ import uuid
 # Create your models here.
 class DataSet(models.Model):
     id = models.UUIDField(default=uuid.uuid4 , unique=True , editable= False , primary_key= True)
-    organization_id = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
 
     SOURCE_TYPE_CHOICES = (
