@@ -9,6 +9,7 @@ from .serializers import Organization_List_Serializer , Organization_Create_Seri
 from core.authentication import Firebase_Authentication_Middleware 
 import logging
 from django.http import HttpResponseForbidden
+from rest_framework.exceptions import AuthenticationFailed , PermissionDenied
 
 # Create your views here.
 
@@ -21,14 +22,14 @@ class Tenant_Base_API(APIView):
             try:
                 request.membership = Membership.objects.get(organization = request.organization , user = request.user)
             except Membership.DoesNotExist :
-                return HttpResponseForbidden('No access to this organization')
+                raise PermissionDenied('No access to this organization')
             except Exception as e :
                 logger.error(f"Error occurred while fetching organization {request.org_slug}: {e}")
                 request.membership = None
                 
             return super().initial(request,*args,**kwargs)
         else:
-            return Response({"error": "Authentication required"}, status = status.HTTP_401_UNAUTHORIZED)
+            raise AuthenticationFailed("Authentication required")
 
 class Get_Org_List_API(Tenant_Base_API):
     def get(self , request):
