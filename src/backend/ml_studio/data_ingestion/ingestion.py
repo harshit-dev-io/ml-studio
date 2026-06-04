@@ -5,6 +5,8 @@ import requests
 import logging
 import io
 
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 
 CHUNK_SIZE = 5*1024*1024 # hardcoded 5 mb chunk size 
