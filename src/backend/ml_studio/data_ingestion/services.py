@@ -26,7 +26,8 @@ def save_Kaggle_data(*,organization , url , kaggleusername , kaggle_api_key , fi
     
     try: 
         dataset = DataSet.objects.create(
-            id = id , 
+            id = id ,
+            organization = organization, 
             name = filename ,
             file_path = key,
             source_type = "kaggle",
