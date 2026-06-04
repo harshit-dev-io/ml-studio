@@ -29,7 +29,7 @@ def save_Kaggle_data(*,organization , url , kaggleusername , kaggle_api_key , fi
             id = id , 
             name = filename ,
             file_path = key,
-            source = "kaggle",
+            source_type = "kaggle",
             status = "qurantine"
         )
         # currently data is in qurantine bucket it will be checked first then placed in ready / production bucket 
@@ -63,7 +63,7 @@ def save_Local_data(*,organization , file , filename = None):
             id = id , 
             name = filename ,
             file_path = key,
-            source = "local",
+            source_type = "local",
             status = "qurantine"
         )
         # currently data is in qurantine bucket it will be checked first then placed in ready / production bucket 
@@ -71,7 +71,7 @@ def save_Local_data(*,organization , file , filename = None):
 
         return 1
     except Exception as e : 
-        logger.error("error while creating a dataset instance in database : " , e)
+        logger.error(f"error while creating a dataset instance in database : {e}")
         return None
     
 
