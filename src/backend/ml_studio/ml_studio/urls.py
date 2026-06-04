@@ -22,4 +22,5 @@ urlpatterns = [
     path('auth/', include("accounts.urls")),
     path('org/', include("organization.urls")),
     path('workspace/', include("workspace.urls")),
+    path('data_ingestion/',include("data_ingestion.urls")),
 ]
