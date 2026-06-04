@@ -35,4 +35,4 @@ class Data_ingestion_API(Tenant_Base_API):
         else:
             return Response({"error" : "Invalid Source "} , status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"message" : "data ingestion in process "} , status=status.HTTP_202_ACCEPTED)          
+        return Response({"message" : "data ingestion in process"} , status=status.HTTP_202_ACCEPTED)          
