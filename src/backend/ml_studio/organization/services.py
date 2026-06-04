@@ -1,5 +1,6 @@
 from .models import Organization , Membership
 from enum import Enum
+from django.http import HttpResponseForbidden
 
 class UserRole(Enum):
     OWNER = 'owner'
@@ -8,6 +9,9 @@ class UserRole(Enum):
     VIEWER = 'viewer'
 
 def Create_Org(* , name , user , type):
+
+    if not user :
+        return HttpResponseForbidden("Authentication required") 
 
     organization = Organization.objects.create(
         name = name,
@@ -21,4 +25,4 @@ def Create_Org(* , name , user , type):
         role = UserRole.OWNER.value
     )
 
-    return organization
+    return 1
