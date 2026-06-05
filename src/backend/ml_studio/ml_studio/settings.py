@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "accounts",
     "organization",
     "workspace",
-    "data_ingestion"
+    "data_ingestion",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
