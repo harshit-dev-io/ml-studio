@@ -62,6 +62,7 @@ def save_Local_data(*,organization , file , filename = None):
     try: 
         dataset = DataSet.objects.create(
             id = id , 
+            organization = organization,
             name = filename ,
             file_path = key,
             source_type = "local",
