@@ -22,7 +22,7 @@ class Base_Ingestion():
 
     def get_object_key(self):
         if self.filename:
-            return f"tenant_{self.tenant_id}/qurantine/{self.id}/{self.filename}"
+            return f"tenant_{self.tenant_id}/{self.id}/{self.filename}"
     
     def initalize_multi_part(self , key):
         mpu = self.s3_client.create_multipart_upload(

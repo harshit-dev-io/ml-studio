@@ -3,6 +3,7 @@ from .models import DataSet
 from django.http import HttpResponseForbidden
 from .ingestion import kaggle_Ingestion_Handler , Local_Ingestion_Handler
 import logging
+from .tasks import Qurantine_to_Ready_Bucket
 
 logger = logging.getLogger(__name__)
 
@@ -62,14 +63,15 @@ def save_Local_data(*,organization , file , filename = None):
     try: 
         dataset = DataSet.objects.create(
             id = id , 
+            organization = organization,
             name = filename ,
             file_path = key,
             source_type = "local",
             status = "qurantine"
         )
-        # currently data is in qurantine bucket it will be checked first then placed in ready / production bucket 
-        # add logic for celery / background worker to check and update status for data 
 
+        to_ready_status = Qurantine_to_Ready_Bucket.delay(id , key , "UNKNOWN") # for prototype we push files from quarantine to ready so keeping data_type = UNKNOWN
+        
         return 1
     except Exception as e : 
         logger.error(f"error while creating a dataset instance in database : {e}")
