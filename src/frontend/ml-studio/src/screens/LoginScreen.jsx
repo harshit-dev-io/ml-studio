@@ -6,10 +6,15 @@ import {
   signInWithPopup 
 } from 'firebase/auth';
 import { auth } from '../js/firebase-config';
+import { apiRequest } from '../utils/api';
 
-export default function LoginScreen({ onNavigate }) {
+export default function LoginScreen({ onNavigate , isSignUp, setIsSignUp}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [isGoogleRegistering, setIsGoogleRegistering] = useState(false);
+  const [tempGoogleCredential, setTempGoogleCredential] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const canvasRef = useRef(null);
 
@@ -98,9 +103,13 @@ export default function LoginScreen({ onNavigate }) {
   const handleLogin = async (e) => {
   e.preventDefault();
   setErrorMsg('');
+  
   try {
     let userCredential;
-    if (theme.isSignUp) {
+    let isNewUser = isSignUp;
+
+    // 1. Authenticate through the Firebase Core SDK instance
+    if (isNewUser) {
       userCredential = await createUserWithEmailAndPassword(auth, email, password);
     } else {
       userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -111,10 +120,23 @@ export default function LoginScreen({ onNavigate }) {
     const token = await userCredential.user.getIdToken();
     console.log("temporary: Captured Firebase Auth JWT Token ->", token);
 
+    // 2. Synchronize Session with Python Backend using the clean api.js helper
+    const endpoint = isNewUser ? '/auth/signup/' : '/auth/login/';
+    const payload = isNewUser 
+      ? { username, display_name: displayName, email } 
+      : { email };
+
+    // Beautifully clean call—no base URLs, manual headers, or .env files required here
+    await apiRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    // 3. Move forward to the main dashboard panel on success
     if (onNavigate) onNavigate('dashboard');
   } catch (error) {
-    console.error(error);
-    setErrorMsg(theme.isSignUp ? 'Registration failed. Email might already be registered.' : 'Invalid credentials. Please double check your details.');
+    console.error("Authentication lifecycle halted:", error);
+    setErrorMsg(error.message || 'Authentication sequence failed to sync with servers.');
   }
 };
 
@@ -129,10 +151,63 @@ export default function LoginScreen({ onNavigate }) {
     const token = await result.user.getIdToken();
     console.log("temporary: Captured Firebase Google OAuth JWT Token ->", token);
 
+    // Check if this is a newly created social identity registration
+    const isNewSocialUser = result._tokenResponse?.isNewUser;
+
+    if (isNewSocialUser) {
+      // Step A: Halt routing and capture the temporary state credentials block
+      setTempGoogleCredential({
+        token,
+        email: result.user.email,
+        suggestedName: result.user.displayName || ''
+      });
+      // Fallback pre-fill fields gracefully from their public Google asset details
+      setDisplayName(result.user.displayName || '');
+      
+      // Step B: Flip the UI into our inline profile setup module layout
+      setIsGoogleRegistering(true);
+    } else {
+      // If they already exist, process normal session pass directly with the backend
+      await apiRequest('/auth/login/', {
+        method: 'POST',
+        body: JSON.stringify({ email: result.user.email })
+      });
+
+      if (onNavigate) onNavigate('dashboard');
+    }
+  } catch (error) {
+    console.error("Google Auth Architecture breakdown:", error);
+    setErrorMsg('Google authentication sequence failed.');
+  }
+};
+
+const handleCompleteGoogleProfile = async (e) => {
+  e.preventDefault();
+  setErrorMsg('');
+
+  if (!username) {
+    setErrorMsg('A unique username parameter is required to initialize your profile workspace.');
+    return;
+  }
+
+  try {
+    // Forward the fully populated dictionary payload safely to your python backend routing system
+    await apiRequest('/auth/signup/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        display_name: displayName,
+        email: tempGoogleCredential.email
+      })
+    });
+
+    // Clear state structures and push forward onto the dashboard grid canvas
+    setIsGoogleRegistering(false);
+    setTempGoogleCredential(null);
     if (onNavigate) onNavigate('dashboard');
   } catch (error) {
-    console.error(error);
-    setErrorMsg('Google Authentication was cancelled or encountered a network error.');
+    console.error("Profile synchronization with backend core rejected:", error);
+    setErrorMsg(error.message || 'Failed to initialize workspace profile parameters.');
   }
 };
 
@@ -202,110 +277,202 @@ export default function LoginScreen({ onNavigate }) {
       }}>
         <div style={{height: '100%', width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '2.25rem' }}>
           
-          {/* Section Introduction Greeting */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', letterSpacing: '1 rem', margin: 0, color: theme.textPrimary }}>
-              Hi, welcome to ML Studio
-            </h1>
-            <p style={{ color: theme.textSecondary, fontSize: '0.95rem', margin: 0 }}>
-              {theme.isSignUp ? 'Get started with your platform workspace.' : 'Login to your account .'}
-            </p>
-          </div>
+          {isGoogleRegistering ? (
+            /* ====================================================================
+               NEW ADDITION: STEP 2 - SOCIAL PROFILE COMPLETION INTERFACE 
+               ==================================================================== */
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: '700', letterSpacing: '-0.04em', margin: 0, color: theme.textPrimary }}>
+                  One last step
+                </h1>
+                <p style={{ color: theme.textSecondary, fontSize: '0.95rem', margin: 0 }}>
+                  Customize your workspace identity preferences to finalize your registration profile.
+                </p>
+              </div>
 
-          {/* 1. Google Single-Sign-On Framework Action */}
-          <button type="button" onClick={handleGoogleAuth}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              backgroundColor: theme.surface,
-              border: `1px solid ${theme.border}`,
-              borderRadius: '8px',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-              color: theme.textPrimary,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
-              transition: 'background-color 0.2s'
-            }}
-          >
-            {/* Minimalist SVG Vector Representation of Google Badge Icon */}
-            <svg width="18" height="18" viewBox="0 0 24 24" style={{ display: 'block' }}>
-              <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.11C18.416 1.872 15.62 1 12.24 1 5.92 1 1 5.92 1 12s4.92 11 11.24 11c6.6 0 11-4.65 11-11.19 0-.75-.08-1.32-.2-1.81H12.24z"/>
-            </svg>
-            {theme.isSignUp ? 'Sign up with Google' : 'Continue with Google'}
-          </button>
+              <form onSubmit={handleCompleteGoogleProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Username</label>
+                  <input 
+                    type="text" required placeholder="e.g., harshit_dev" value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    style={{
+                      width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                      backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                    }}
+                  />
+                </div>
 
-          {/* Horizontal Split Line Divider Context */}
-          <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem' }}>
-            <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(0,0,0,0.06)' }} />
-            <span style={{ fontSize: '0.75rem', color: '#a0aec0', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
-            <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(0,0,0,0.06)' }} />
-          </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Display Name</label>
+                  <input 
+                    type="text" required placeholder="e.g., Harshit Bansal" value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    style={{
+                      width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                      backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                    }}
+                  />
+                </div>
 
-          {/* 2. Core Form Body Block */}
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Email Address</label>
-              <input 
-                type="email" 
-                required 
-                placeholder="name@domain.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {errorMsg && (
+                  <div style={{ color: '#e53e3e', fontSize: '0.85rem', textAlign: 'left', fontWeight: '500' }}>{errorMsg}</div>
+                )}
+
+                <button type="submit" style={{
+                  width: '100%', padding: '0.85rem', backgroundColor: '#000000', color: '#ffffff',
+                  fontSize: '0.95rem', fontWeight: '600', border: 'none', borderRadius: '8px',
+                  cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)', margin: '0.5rem 0 0 0'
+                }}>
+                  Complete Registration
+                </button>
+              </form>
+            </>
+          ) : (
+            /* ====================================================================
+               STEP 1 - SECURE CREDENTIALS AND THIRD-PARTY OAUTH INTERFACE 
+               ==================================================================== */
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                <h1 style={{ fontSize: '2rem', fontWeight: '700', letterSpacing: '1 rem', margin: 0, color: theme.textPrimary }}>
+                  Hi, welcome to ML Studio
+                </h1>
+                <p style={{ color: theme.textSecondary, fontSize: '0.95rem', margin: 0 }}>
+                  {isSignUp ? 'Get started with your platform workspace.' : 'Login to your account .'}
+                </p>
+              </div>
+
+              {/* 1. Google Single-Sign-On Framework Action */}
+              <button type="button" onClick={handleGoogleAuth}
                 style={{
-                  width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
-                  backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  backgroundColor: theme.surface,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  color: theme.textPrimary,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.75rem',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                  transition: 'background-color 0.2s'
                 }}
-              />
-            </div>
+              >
+                {/* Minimalist SVG Vector Representation of Google Badge Icon */}
+                <svg width="18" height="18" viewBox="0 0 24 24" style={{ display: 'block' }}>
+                  <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.227-3.11C18.416 1.872 15.62 1 12.24 1 5.92 1 1 5.92 1 12s4.92 11 11.24 11c6.6 0 11-4.65 11-11.19 0-.75-.08-1.32-.2-1.81H12.24z"/>
+                </svg>
+                {isSignUp ? 'Sign up with Google' : 'Continue with Google'}
+              </button>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Password</label>
-              <input 
-                type="password" 
-                required 
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
-                  backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
-                }}
-              />
-            </div>
+              {/* Horizontal Split Line Divider Context */}
+              <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem' }}>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(0,0,0,0.06)' }} />
+                <span style={{ fontSize: '0.75rem', color: '#a0aec0', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>or</span>
+                <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(0,0,0,0.06)' }} />
+              </div>
 
-            {errorMsg && (
-              <div style={{ color: '#e53e3e', fontSize: '0.85rem', textAlign: 'left', fontWeight: '500' }}>{errorMsg}</div>
-            )}
+              {/* 2. Core Form Body Block */}
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
+                {isSignUp && (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Username</label>
+                      <input 
+                        type="text" 
+                        required 
+                        placeholder="e.g., harshit_dev"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        style={{
+                          width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                          backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                        }}
+                      />
+                    </div>
 
-            <button type="submit" style={{
-              width: '100%', padding: '0.85rem', backgroundColor: '#000000', color: '#ffffff',
-              fontSize: '0.95rem', fontWeight: '600', border: 'none', borderRadius: '8px',
-              cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)', margin: '0.5rem 0 0 0'
-            }}>
-              {theme.isSignUp ? 'Create Account' : 'Log In'}
-            </button>
-          </form>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                      <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Display Name</label>
+                      <input 
+                        type="text" 
+                        required 
+                        placeholder="e.g., Harshit Bansal"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        style={{
+                          width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                          backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Email Address</label>
+                  <input 
+                    type="email" 
+                    required 
+                    placeholder="name@domain.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    style={{
+                      width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                      backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                    }}
+                  />
+                </div>
 
-          {/* 3. Account Creation Prompt Link Redirect */}
-          <div style={{ fontSize: '0.9rem', color: theme.textSecondary, textAlign: 'left', margin: 0 }}>
-            {theme.isSignUp ? 'Already have an account? ' : "Don't have an account? "}{' '}
-            <span 
-              onClick={() => {
-                theme.settheme.isSignUp(!theme.isSignUp);
-                setErrorMsg('');
-              }} 
-              style={{ color: '#000000', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              {theme.isSignUp ? 'Log in' : 'Get started'}
-            </span>
-          </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: '600', color: theme.textPrimary }}>Password</label>
+                  <input 
+                    type="password" 
+                    required 
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{
+                      width: '90%', padding: '0.75rem 1rem', border: `1px solid ${theme.border}`,
+                      backgroundColor: theme.surface, borderRadius: '8px', fontSize: '0.95rem', color: theme.textPrimary, outline: 'none'
+                    }}
+                  />
+                </div>
 
-        </div>
+                {errorMsg && (
+                  <div style={{ color: '#e53e3e', fontSize: '0.85rem', textAlign: 'left', fontWeight: '500' }}>{errorMsg}</div>
+                )}
+
+                <button type="submit" style={{
+                  width: '100%', padding: '0.85rem', backgroundColor: '#000000', color: '#ffffff',
+                  fontSize: '0.95rem', fontWeight: '600', border: 'none', borderRadius: '8px',
+                  cursor: 'pointer', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)', margin: '0.5rem 0 0 0'
+                }}>
+                  {isSignUp ? 'Create Account' : 'Log In'}
+                </button>
+              </form>
+
+              {/* 3. Account Creation Prompt Link Redirect */}
+              <div style={{ fontSize: '0.9rem', color: theme.textSecondary, textAlign: 'left', margin: 0 }}>
+                {isSignUp ? 'Already have an account? ' : "Don't have an account? "}{' '}
+                <span 
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setErrorMsg('');
+                  }} 
+                  style={{ color: '#000000', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {isSignUp ? 'Log in' : 'Get started'}
+                </span>
+              </div>
+            </>
+          )}
+
+        </div> {/* 🧠 Fixed: The nested container </div> stays cleanly open right here */}
       </div>
 
     </div>

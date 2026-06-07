@@ -4,10 +4,16 @@ import FeatureSection from '../components/FeatureSection';
 import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
 import LoginScreen from './LoginScreen';
+import DashboardScreen from './DashboardScreen';
+import { auth } from '../js/firebase-config';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function HomeScreen() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true); // Prevent UI flash while checking session
+
+  // Dynamic initialization theme block remains the same...
   const theme = {
     background: '#f0f4f8',      
     textPrimary: '#1a202c',     
@@ -15,33 +21,52 @@ export default function HomeScreen() {
     accent: '#000000',          
     surface: '#ffffff',         
     border: 'rgba(0, 0, 0, 0.06)',
-    isSignUp,        // <-- Pass the state down
+    isSignUp,        
     setIsSignUp,
     onNavigate: (target) => setCurrentScreen(target)
   };
 
-  
+  // SECURE AUTH PERSISTENCE LISTENER PASS
   useEffect(() => {
-    // Force EVERY top-level container to drop side margins and vertical border lines
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Secure active session verified! Direct-route straight into the ML Studio dashboard canvas
+        setCurrentScreen('dashboard');
+      } else {
+        // No active session found, fall back gracefully to landing page layout orientation
+        if (currentScreen === 'dashboard') {
+          setCurrentScreen('home');
+        }
+      }
+      setAuthLoading(false);
+    });
+
+    // Cleanup subscription thread channel on unmount
+    return () => unsubscribe();
+  }, [currentScreen]);
+
+  // Clean layout utility effect side-margin drop pass
+  useEffect(() => {
     const elements = [document.documentElement, document.body, document.getElementById('root')];
     elements.forEach(el => {
-      if (el) {
-        el.style.margin = '0';
-        el.style.padding = '0';
-        el.style.width = '100vw';
-        el.style.maxWidth = '100vw';
-        el.style.overflowX = 'hidden';
-        el.style.border = 'none';
-        el.style.outline = 'none';
-        el.style.boxShadow = 'none';
-      }
+      if (el) { el.style.margin = '0'; el.style.padding = '0'; el.style.width = '100vw'; }
     });
-    document.body.style.backgroundColor = theme.background;
-    document.body.style.fontFamily = 'Inter, system-ui, sans-serif';
-  }, [theme.background]);
+  }, []);
+
+  // Global Loading Fallback to prevent login screen flashing briefly on refresh
+  if (authLoading) {
+    return (
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f4f8', color: '#1a202c', fontFamily: 'sans-serif' }}>
+        Syncing secure workspace session...
+      </div>
+    );
+  }
   
   if (currentScreen === 'login') {
-    return <LoginScreen onNavigate={theme.onNavigate} />;
+    return <LoginScreen onNavigate={theme.onNavigate} isSignUp={isSignUp} setIsSignUp={setIsSignUp} />;
+  }
+  else if (currentScreen === 'dashboard') {
+    return <DashboardScreen onNavigate={theme.onNavigate} />;
   }
 
   return (
