@@ -88,45 +88,38 @@ export default function HeroSection({ theme }) {
         }}>|</span>
       </h1>
 
-      {/* 3. High-Contrast Interactive Actions */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1.25rem',
-        flexWrap: 'wrap'
-      }}>
-        {/* Login Button: Gray-Mix / Minimalist Borderless */}
-        <button style={{
-          padding: '0.75rem 2rem',
-          fontSize: '0.95rem',
-          fontWeight: '600',
-          backgroundColor: 'transparent',
-          color: theme.textPrimary,
-          border: `1px solid rgba(0, 0, 0, 0.15)`,
-          borderRadius: '8px',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-        }}>
-          Login
-        </button>
+      {/* Replace your button div container with this block inside HeroSection.jsx */}
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '1.25rem',
+  flexWrap: 'wrap'
+}}>
+  {/* Login Button */}
+  <button 
+    onClick={() => {theme.setIsSignUp(false);theme.onNavigate('login')}}
+    style={{
+      padding: '0.75rem 2rem', fontSize: '0.95rem', fontWeight: '600',
+      backgroundColor: 'transparent', color: theme.textPrimary,
+      border: `1px solid rgba(0, 0, 0, 0.15)`, borderRadius: '8px', cursor: 'pointer'
+    }}
+  >
+    Login
+  </button>
 
-        {/* Get Started Button: Premium Stark Charcoal Black */}
-        <button style={{
-          padding: '0.75rem 2rem',
-          fontSize: '0.95rem',
-          fontWeight: '600',
-          backgroundColor: '#000000',
-          color: '#ffffff',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-          transition: 'all 0.2s ease',
-        }}>
-          Get Started
-        </button>
-      </div>
+  {/* Get Started Button */}
+  <button 
+    onClick={() => {theme.setIsSignUp(true);theme.onNavigate('login');}}
+    style={{
+      padding: '0.75rem 2rem', fontSize: '0.95rem', fontWeight: '600',
+      backgroundColor: '#000000', color: '#ffffff', border: 'none',
+      borderRadius: '8px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)'
+    }}
+  >
+    Get Started
+  </button>
+</div>
 
       {/* Injected CSS Animation Keyframe for Cursor Blinking */}
       <style>{`

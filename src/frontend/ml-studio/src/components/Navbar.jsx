@@ -119,20 +119,16 @@ export default function Navbar({ theme }) {
         </div>
 
         {/* Premium Deep Charcoal Black Button Accent */}
-        <button style={{
-          padding: '0.6rem 1.5rem',
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          backgroundColor: '#000000', // Stark solid black
-          color: '#ffffff',          // Crisp white text
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          transition: 'background-color 0.2s'
-        }}>
-          Get Started
-        </button>
+        {/* 1. Add click toggle onto the primary action button inside Navbar.jsx */}
+<button 
+  onClick={() => {theme.setIsSignUp(true);theme.onNavigate('login');}}
+  style={{
+    padding: '0.6rem 1.5rem', fontSize: '0.875rem', fontWeight: '600',
+    backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '6px', cursor: 'pointer'
+  }}
+>
+  Get Started
+</button>
       </div>
     </nav>
   );
