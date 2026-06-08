@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,3 +14,10 @@ const firebaseConfig = {
 // Force immediate initialization on module compilation pass
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+let messagingInstance = null;
+if (typeof window !== "undefined" && isSupported()) {
+  messagingInstance = getMessaging(app);
+}
+
+export const messaging = messagingInstance;

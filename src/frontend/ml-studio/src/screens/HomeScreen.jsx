@@ -5,15 +5,18 @@ import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
 import LoginScreen from './LoginScreen';
 import DashboardScreen from './DashboardScreen';
+import ProjectWorkspaceScreen from './ProjectWorkspaceScreen';
 import { auth } from '../js/firebase-config';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function HomeScreen() {
-  const [currentScreen, setCurrentScreen] = useState('home');
+  // 🧠 FIX: Explicitly track the active view query param as the single source of truth for routing
+  const [currentView, setCurrentView] = useState(() => {
+    return new URLSearchParams(window.location.search).get('view') || 'home';
+  });
+  const [authLoading, setAuthLoading] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true); // Prevent UI flash while checking session
 
-  // Dynamic initialization theme block remains the same...
   const theme = {
     background: '#f0f4f8',      
     textPrimary: '#1a202c',     
@@ -23,29 +26,45 @@ export default function HomeScreen() {
     border: 'rgba(0, 0, 0, 0.06)',
     isSignUp,        
     setIsSignUp,
-    onNavigate: (target) => setCurrentScreen(target)
+    onNavigate: (target) => handleURLNavigation(target)
   };
+
+  // Listen for native browser Back/Forward navigation button events to update state instantly
+  useEffect(() => {
+    const handlePopState = () => {
+      const view = new URLSearchParams(window.location.search).get('view') || 'home';
+      setCurrentView(view);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // SECURE AUTH PERSISTENCE LISTENER PASS
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view') || currentView;
+      const org = params.get('org');
+
       if (user) {
-        // Secure active session verified! Direct-route straight into the ML Studio dashboard canvas
-        setCurrentScreen('dashboard');
+        if (view === 'home' || view === 'login') {
+          if (org) {
+            handleURLNavigation('workspace', { org });
+          } else {
+            handleURLNavigation('dashboard');
+          }
+        }
       } else {
-        // No active session found, fall back gracefully to landing page layout orientation
-        if (currentScreen === 'dashboard') {
-          setCurrentScreen('home');
+        // If unauthenticated, restrict access to entry screens cleanly
+        if (view !== 'home' && view !== 'login') {
+          handleURLNavigation('home');
         }
       }
       setAuthLoading(false);
     });
-
-    // Cleanup subscription thread channel on unmount
     return () => unsubscribe();
-  }, [currentScreen]);
+  }, [currentView]);
 
-  // Clean layout utility effect side-margin drop pass
   useEffect(() => {
     const elements = [document.documentElement, document.body, document.getElementById('root')];
     elements.forEach(el => {
@@ -53,7 +72,22 @@ export default function HomeScreen() {
     });
   }, []);
 
-  // Global Loading Fallback to prevent login screen flashing briefly on refresh
+  // Central Router Module
+  const handleURLNavigation = (targetPath, queryParams = {}) => {
+    const url = new URL(window.location.origin);
+    
+    if (targetPath === 'home') {
+      // Keep URL clean on landing presentation pages
+    } else {
+      url.searchParams.set('view', targetPath);
+      if (queryParams.org) url.searchParams.set('org', queryParams.queryParams ? queryParams.queryParams.org : queryParams.org);
+      if (queryParams.project) url.searchParams.set('project', queryParams.project);
+    }
+
+    window.history.pushState({}, '', url.toString() === window.location.origin + '/' ? url.origin : url.toString());
+    setCurrentView(targetPath);
+  };
+
   if (authLoading) {
     return (
       <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f4f8', color: '#1a202c', fontFamily: 'sans-serif' }}>
@@ -62,52 +96,22 @@ export default function HomeScreen() {
     );
   }
   
-  if (currentScreen === 'login') {
-    return <LoginScreen onNavigate={theme.onNavigate} isSignUp={isSignUp} setIsSignUp={setIsSignUp} />;
+  // 🧠 FIX: Simplified, deterministic switch routing structures
+  if (currentView === 'login') {
+    return <LoginScreen onNavigate={handleURLNavigation} isSignUp={isSignUp} setIsSignUp={setIsSignUp} />;
   }
-  else if (currentScreen === 'dashboard') {
-    return <DashboardScreen onNavigate={theme.onNavigate} />;
+  if (currentView === 'dashboard') {
+    return <DashboardScreen onNavigate={handleURLNavigation} />;
+  }
+  if (currentView === 'workspace') {
+    return <ProjectWorkspaceScreen onNavigate={handleURLNavigation} onBackToDashboard={() => handleURLNavigation('dashboard')} />;
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100vw',
-      backgroundColor: theme.background,
-      color: theme.textPrimary,
-      display: 'flex',
-      flexDirection: 'column',
-      boxSizing: 'border-box',
-      margin: 0,
-      padding: 0,
-      border: 'none'
-    }}>
-      <Navbar theme={theme} />
-      
-      {/* Empty Hero Spacer */}
-      <HeroSection theme={theme} />
-
-      <FeatureSection 
-        theme={theme}
-        title="Visual Pipeline Builder"
-        description="A drag-and-drop workflow canvas that allows users to connect data sources directly to machine learning architectures without writing boilerplate code."
-      />
-      <FeatureSection 
-        theme={theme}
-        title="One-Click API Deployment"
-        description="Instant compilation of a trained ML model into a production-ready, highly scalable backend API endpoint hosted on cloud infrastructure."
-      />
-      <FeatureSection 
-        theme={theme}
-        title="Automated Dataset Synthesis"
-        description="Built-in AI data-processing tools that clean, format, and prepare raw data text/audio or images for seamless model ingestion."
-      />
-      <FeatureSection 
-        theme={theme}
-        title="Real-Time Telemetry & Metrics"
-        description="A live-updating dashboard tracking model accuracy, training loss curves, and active server endpoint metrics."
-      />
-
+    <div style={{ minHeight: '100vh', width: '100vw', backgroundColor: theme.background, color: theme.textPrimary, display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+      <Navbar theme={theme} onNavigate={(target) => handleURLNavigation(target)} />
+      <HeroSection theme={theme} onNavigate={(target) => handleURLNavigation(target)} />
+      <FeatureSection theme={theme} title="Visual Pipeline Builder" description="A drag-and-drop workflow canvas..." />
       <Footer theme={theme} />
     </div>
   );
